@@ -27,3 +27,15 @@ customerPreferredMean(customer(mohamed, elkasad, 1999-01-30, single, 0, student)
 
 customerPreferredAccommodation(customer(ahmed, aly, 1993-01-30, single, 0, student), hotel, 20).
 customerPreferredAccommodation(customer(mohamed, elkasad, 1999-01-30, single, 0, student), hotel, 100).
+
+
+
+subSet([], []).
+subSet([_|T], L):-
+    subSet(T, L).
+subSet([H|T], [H|L]):-
+    subSet(T, L).
+
+possibleSubset(L, R):-
+    subSet(L, R1),
+    permutation(R1, R).
