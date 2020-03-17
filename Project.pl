@@ -96,6 +96,6 @@ before(Y1-M1-D1 , Y2-M2-D2):-
 	(Y1 =< Y2);(Y1 = Y2 , M2 >= M1);(Y1 = Y2 , M2 = M1 ,D2 >= D1).
 
 overlapPeriod(period(Y11-M11-D11 ,Y12-M12-D12) , period(Y21-M21-D21 , Y22-M22-D22)):-
-(before(Y11-M11-D11,Y21-M21-D21) , before(Y21-M21-D21 , Y12-M12-D12));
-(before(Y11-M11-D11 , Y22-M22-D22) , before(Y22-M22-D22 , Y12-M12-D12)).
+    (before(Y11-M11-D11,Y21-M21-D21) , before(Y21-M21-D21 , Y12-M12-D12));
+    (before(Y11-M11-D11 , Y22-M22-D22) , before(Y22-M22-D22 , Y12-M12-D12)).
 
