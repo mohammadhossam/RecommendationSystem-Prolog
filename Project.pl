@@ -1,4 +1,3 @@
-
 % offerMean(X, Y) -> Transportation mean Y is used with offer X
 
 offerMean(offer(dahab, [diving, snorkeling, horseRiding], 10000, 2020-02-12, 2020-03-12, period(2020-03-15, 2020-04-15), 10, 5), bus).
@@ -32,10 +31,28 @@ customerPreferredAccommodation(customer(mohamed, elkasad, 1999-01-30, single, 0,
 
 subSet([], []).
 subSet([_|T], L):-
-    subSet(T, L).
+   subSet(T, L).
 subSet([H|T], [H|L]):-
-    subSet(T, L).
+   subSet(T, L).
 
 possibleSubset(L, R):-
-    subSet(L, R1),
-    permutation(R1, R).
+   subSet(L, R1),
+   permutation(R1, R).
+
+possibleActivity([activity(X)|T], Acc, R):-
+	possibleSubset(X, R1),
+	reverse(Acc, RAcc),
+	append(RAcc, [activity(R1)], L1),
+	append(L1, T, R).
+possibleActivity([H|T], Acc, R):-
+	possibleActivity(T, [H|Acc], R).
+
+choosePreferences(Prefs , ChosenPreferences):-
+    possibleSubset(Prefs , ChosenPreferences),
+	\+member(activity(X), ChosenPreferences).
+
+choosePreferences(Prefs , ChosenPreferences):-
+    possibleSubset(Prefs , ChosenPreferences1),
+	member(activity(X), ChosenPreferences1),
+	possibleActivity(ChosenPreferences1, [], ChosenPreferences).
+
