@@ -52,27 +52,23 @@ choosePreferences(Prefs , ChosenPreferences):-
   member(activity(_), ChosenPreferences1),
   possibleActivity(ChosenPreferences1, [], ChosenPreferences).
 
-activitiesRate([],_,0).
-activitiesRate([H|T],C,S):-
+activitiesRate([],_, _, 0).
+
+activitiesRate([H|T], C, Activities, S):-
+  (member(H, Activities),
   customerPreferredActivity(C,H,R),
-  activitiesRate(T,C,R1),
-  S is R+R1.
+  activitiesRate(T, C, Activities, R1),
+  S is R+R1) ;
+  (\+ member(H, Activities),
+   activitiesRate(T, C, Activities, S)).
 
 preferenceSatisfaction(O, Customer, ChosenPrefs, S):-
-  O=offer(Destination, Activities, Cost, _, _, Period, _, _),
+  O=offer( _, Activities, _, _, _, _, _, _),
 
-  (member(dest(Destination),ChosenPrefs);
-  \+member(dest(_), ChosenPrefs)),
-
-  ((member(activity(X),ChosenPrefs),
-  matchActivities(X,Activities),
-  activitiesRate(X,Customer,S1));
+   ((member(activity(X),ChosenPrefs),
+  activitiesRate(X,Customer, Activities, S1));
   (\+member(activity(_),ChosenPrefs),
    S1 is 0)),
-
-
-  ((member(budget(Y),ChosenPrefs), Y>=Cost );
-  (\+member(budget(_),ChosenPrefs))),
 
   ((member(means(M),ChosenPrefs),
   offerMean(O,M),
@@ -85,10 +81,6 @@ preferenceSatisfaction(O, Customer, ChosenPrefs, S):-
   customerPreferredAccommodation(Customer,A,S3));
   (\+member(accommodation(_),ChosenPrefs),
   S3 is 0)),
-
-  ((member(period(Z),ChosenPrefs),
-  overlapPeriod(Period,period(Z)));
-  (\+member(period(_),ChosenPrefs))),
 
   S is S1+S2+S3.
 
@@ -123,13 +115,10 @@ getOffer(ChosenPrefs, Offer):-
 	  ((member(accommodation(A), ChosenPrefs)) ;
 	  (\+member(accommodation(_), ChosenPrefs))).
 
-
-
-
 matchActivities([], _).
 matchActivities([H|T], L):-
- 	member(H, L),
-  	matchActivities(T, L).
+    member(H, L),
+    matchActivities(T, L).
 
 
 recommendOfferForCustomer(Prefs, ChosenPrefs, O):-
@@ -148,13 +137,22 @@ recommendOffer([] , [] , Offer, Acc ,ChosenCustomers):-
   	Offer = offer(_,_,_,_,_,_,_,N),
 	buildSatisfactionList(Acc ,SatisfactionList , Offer),
 	sortSat(SatisfactionList,[],Res),
-	chooseN(Res,N,ChosenCustomers).
+	pack(Res, Packed),
+	permute(Packed, Permuted),
+	my_flatten(Permuted, FinalRes),
+	chooseN(FinalRes, N, ChosenCustomers).
 
 buildSatisfactionList([cusPrefs(C,ChosenPrefs)|CT] , [sat(C,S)|Rest] , Offer):-
   	preferenceSatisfaction(Offer, C,ChosenPrefs, S),
 	buildSatisfactionList(CT , Rest , Offer).
 
 buildSatisfactionList([], [], _).
+
+
+permute([H|T], [R1|R2]):-
+	permutation(H, R1),
+	permute(T, R2).
+permute([], []).
 
 
 sortSat([] , L1, L1).
@@ -175,3 +173,27 @@ chooseN([sat(C,_)|T], Num, [C|Res]):-
   	Num > 0 ,
   	Num1 is Num - 1,
   	chooseN(T, Num1 , Res).
+
+pack([sat(C1, S1), sat(C2, S2)|T], Acc, [[sat(C1, S1)|Acc]|R]):-
+	S1 \== S2,
+	pack([sat(C2, S2)|T], [], R).
+
+pack([sat(C1, S1), sat(C2, S2)|T], Acc, R):-
+	S1 == S2,
+	pack([sat(C2, S2)|T], [sat(C1, S1)|Acc], R).
+
+pack([H], Acc, [[H|Acc]]).
+
+pack(L, R):-
+	pack(L, [], R).
+
+my_flatten([], []).
+my_flatten([H|T], X):-
+	\+is_list(H),
+	my_flatten(T, Y),
+	append([H], Y, X).
+my_flatten([H|T], X):-
+	is_list(H),
+	my_flatten(H, Y1),
+	my_flatten(T, Y2),
+	append(Y1, Y2, X).
